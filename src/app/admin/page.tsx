@@ -1,7 +1,120 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
+// --- Auth Helpers ---
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function getStoredHash(): string | null {
+  return localStorage.getItem("lalaland-admin-hash");
+}
+
+function isLoggedIn(): boolean {
+  return sessionStorage.getItem("lalaland-admin-auth") === "true";
+}
+
+// --- Login Component ---
+function AdminLogin({ onLogin }: { onLogin: () => void }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSetup, setIsSetup] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    setIsSetup(!getStoredHash());
+  }, []);
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (isSetup) {
+      if (password.length < 4) {
+        setError("Password must be at least 4 characters. Even wolves have standards.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords don't match. Try again, Valencia.");
+        return;
+      }
+      const hash = await hashPassword(password);
+      localStorage.setItem("lalaland-admin-hash", hash);
+      sessionStorage.setItem("lalaland-admin-auth", "true");
+      onLogin();
+    } else {
+      const hash = await hashPassword(password);
+      if (hash === getStoredHash()) {
+        sessionStorage.setItem("lalaland-admin-auth", "true");
+        onLogin();
+      } else {
+        setError("Wrong password. The dragons have been alerted.");
+      }
+    }
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#0c0618] px-6">
+      <div className="w-full max-w-md rounded-2xl border border-purple-glow/30 bg-deep-purple/20 p-8 backdrop-blur-sm">
+        <div className="mb-8 text-center">
+          <h1 className="glow-text mb-2 text-4xl font-bold text-white">
+            {isSetup ? "Set Your Password" : "Admin Access"}
+          </h1>
+          <p className="text-sm text-sunset-pink">
+            {isSetup
+              ? "First time? Create a password to lock this panel down."
+              : "Valencia's eyes only. Prove it's you."}
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={isSetup ? "Create a password" : "Enter password"}
+            autoFocus
+            className="w-full rounded-lg border border-purple-glow/30 bg-[#0c0618] px-4 py-3 text-white placeholder:text-foreground/30 focus:border-sunset-pink focus:outline-none"
+          />
+          {isSetup && (
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+              className="w-full rounded-lg border border-purple-glow/30 bg-[#0c0618] px-4 py-3 text-white placeholder:text-foreground/30 focus:border-sunset-pink focus:outline-none"
+            />
+          )}
+
+          {error && (
+            <p className="text-sm text-volcano-red">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            className="mt-2 rounded-full bg-purple-glow px-6 py-3 font-semibold text-white transition-all hover:bg-purple-glow/80 hover:shadow-lg hover:shadow-purple-glow/30"
+          >
+            {isSetup ? "Lock It Down" : "Enter"}
+          </button>
+        </form>
+
+        {!isSetup && (
+          <p className="mt-6 text-center text-xs text-foreground/20">
+            If you forgot your password, that&apos;s between you and the volcano.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- Admin Panel ---
 interface Application {
   id: string;
   name: string;
@@ -68,7 +181,7 @@ const denialResponses = [
   },
 ];
 
-export default function AdminPage() {
+function AdminPanel() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [customResponse, setCustomResponse] = useState("");
@@ -80,14 +193,12 @@ export default function AdminPage() {
   }, []);
 
   function sendResponse(app: Application, response: string, status: "approved" | "denied") {
-    // Update application status
     const updated = applications.map((a) =>
       a.id === app.id ? { ...a, status, response } : a
     );
     setApplications(updated);
     localStorage.setItem("lalaland-applications", JSON.stringify(updated));
 
-    // Open email to applicant
     const statusLabel = status === "approved" ? "APPROVED" : "DENIED";
     const subject = encodeURIComponent(`La La Land Application: ${statusLabel}`);
     const body = encodeURIComponent(
@@ -110,6 +221,11 @@ export default function AdminPage() {
     setApplications(updated);
     localStorage.setItem("lalaland-applications", JSON.stringify(updated));
   }
+
+  const handleLogout = useCallback(() => {
+    sessionStorage.removeItem("lalaland-admin-auth");
+    window.location.reload();
+  }, []);
 
   const pending = applications.filter((a) => a.status === "pending");
   const reviewed = applications.filter((a) => a.status !== "pending");
@@ -135,6 +251,12 @@ export default function AdminPage() {
               {reviewed.filter((a) => a.status === "denied").length} Denied
             </span>
           </div>
+          <button
+            onClick={handleLogout}
+            className="mt-4 text-xs text-foreground/30 transition-colors hover:text-volcano-red"
+          >
+            Log Out
+          </button>
         </div>
 
         {/* Response Modal */}
@@ -314,4 +436,29 @@ export default function AdminPage() {
       </div>
     </div>
   );
+}
+
+// --- Main Page (Auth Gate) ---
+export default function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setAuthenticated(isLoggedIn());
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0c0618]">
+        <p className="text-foreground/30 animate-pulse">Checking credentials...</p>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <AdminLogin onLogin={() => setAuthenticated(true)} />;
+  }
+
+  return <AdminPanel />;
 }
