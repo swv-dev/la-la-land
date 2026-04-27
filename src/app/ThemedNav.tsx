@@ -1,12 +1,27 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTheme, TIME_THEMES, WEATHER_EFFECTS } from "./ThemeContext";
 
 export function ThemedNav() {
   const { time, weather, temp } = useTheme();
   const theme = TIME_THEMES[time];
   const weatherInfo = WEATHER_EFFECTS[weather];
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when menu is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
 
   const links = [
     { href: "/", label: "Home" },
@@ -37,17 +52,83 @@ export function ThemedNav() {
         >
           La La Land
         </Link>
-        <div className="flex items-center gap-6 text-sm">
-          {/* Weather/time badge */}
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs opacity-60" style={{ backgroundColor: `${theme.accent}20`, color: theme.textSecondary }}>
+
+        {/* Weather badge + desktop links */}
+        <div className="hidden lg:flex items-center gap-6 text-sm">
+          <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs opacity-60" style={{ backgroundColor: `${theme.accent}20`, color: theme.textSecondary }}>
             {theme.icon} {weatherInfo.icon} {temp}&deg;F
           </span>
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="transition-colors duration-300 hover:opacity-100 opacity-70"
-              style={{ color: theme.textPrimary }}
+              className="transition-colors duration-300 hover:opacity-100"
+              style={{
+                color: theme.textPrimary,
+                opacity: pathname === link.href ? 1 : 0.7,
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        {/* Mobile: weather badge + hamburger */}
+        <div className="flex lg:hidden items-center gap-3">
+          <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs opacity-60" style={{ backgroundColor: `${theme.accent}20`, color: theme.textSecondary }}>
+            {theme.icon} {weatherInfo.icon} {temp}&deg;F
+          </span>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            className="relative z-60 flex h-10 w-10 flex-col items-center justify-center gap-1.5"
+          >
+            <span
+              className="block h-0.5 w-6 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: theme.textPrimary,
+                transform: mobileOpen ? "rotate(45deg) translate(3px, 3px)" : "none",
+              }}
+            />
+            <span
+              className="block h-0.5 w-6 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: theme.textPrimary,
+                opacity: mobileOpen ? 0 : 1,
+              }}
+            />
+            <span
+              className="block h-0.5 w-6 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: theme.textPrimary,
+                transform: mobileOpen ? "rotate(-45deg) translate(3px, -3px)" : "none",
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile slide-down menu */}
+      <div
+        className="lg:hidden overflow-hidden transition-all duration-300 ease-in-out"
+        style={{
+          maxHeight: mobileOpen ? `${links.length * 56 + 16}px` : "0px",
+          backgroundColor: theme.navBg,
+          borderTop: mobileOpen ? `1px solid ${theme.accent}33` : "none",
+        }}
+      >
+        <div className="mx-auto max-w-6xl px-6 py-2">
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="block py-3 text-sm transition-colors duration-300"
+              style={{
+                color: theme.textPrimary,
+                opacity: pathname === link.href ? 1 : 0.7,
+                borderBottom: `1px solid ${theme.accent}15`,
+              }}
             >
               {link.label}
             </Link>
