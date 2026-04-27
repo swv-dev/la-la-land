@@ -1,26 +1,98 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-purple-glow: #7c3aed;
+  --color-sunset-pink: #c084fc;
+  --color-sunset-orange: #f59e0b;
+  --color-deep-purple: #1e1035;
+  --color-ocean-glow: #06b6d4;
+  --color-volcano-red: #ef4444;
+  --color-lagoon: #22d3ee;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #0c0618;
+  --foreground: #f0e6ff;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Glowing text effect */
+.glow-text {
+  text-shadow: 0 0 20px rgba(124, 58, 237, 0.5), 0 0 40px rgba(192, 132, 252, 0.3);
+}
+
+/* Sparkle/twinkle animation for the water */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.6), 0 0 60px rgba(192, 132, 252, 0.3); }
+}
+
+@keyframes lava-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.animate-twinkle {
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-lava-pulse {
+  animation: lava-pulse 2s ease-in-out infinite;
+}
+
+/* Gradient backgrounds */
+.bg-sunset {
+  background: linear-gradient(180deg, #1e1035 0%, #4c1d95 30%, #7c3aed 50%, #c084fc 70%, #f59e0b 90%, #fb923c 100%);
+}
+
+.bg-ocean-night {
+  background: linear-gradient(180deg, #0c0618 0%, #1e1035 40%, #0e1a3a 70%, #06b6d4 100%);
+}
+
+.bg-card {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(30, 16, 53, 0.8) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Star field for hero */
+.stars {
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(192, 132, 252, 0.8), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(192, 132, 252, 0.6), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(2px 2px at 160px 30px, rgba(6, 182, 212, 0.7), transparent),
+    radial-gradient(1px 1px at 200px 60px, rgba(192, 132, 252, 0.5), transparent),
+    radial-gradient(2px 2px at 250px 20px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 300px 50px, rgba(6, 182, 212, 0.6), transparent);
+  background-size: 320px 100px;
 }
