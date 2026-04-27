@@ -18,17 +18,34 @@
 :root {
   --background: #0c0618;
   --foreground: #f0e6ff;
+  --theme-accent: #c084fc;
+  --theme-glow: rgba(192, 132, 252, 0.4);
+  --theme-nav-bg: rgba(12, 6, 24, 0.85);
+  --theme-card-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(30, 16, 53, 0.8) 100%);
+  --theme-card-border: rgba(124, 58, 237, 0.3);
+  --theme-text-primary: #fff;
+  --theme-text-secondary: #c084fc;
+  --theme-text-muted: rgba(192, 132, 252, 0.6);
+  --theme-gradient: linear-gradient(180deg, #1e1035 0%, #4c1d95 30%, #7c3aed 50%, #c084fc 70%, #f59e0b 90%);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 1s ease;
 }
 
-/* Glowing text effect */
+/* Glowing text effect - uses current theme accent */
 .glow-text {
-  text-shadow: 0 0 20px rgba(124, 58, 237, 0.5), 0 0 40px rgba(192, 132, 252, 0.3);
+  text-shadow: 0 0 20px var(--theme-glow), 0 0 40px var(--theme-glow);
+}
+
+/* Dynamic card style */
+.bg-card {
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-card-border);
+  backdrop-filter: blur(10px);
 }
 
 /* Sparkle/twinkle animation for the water */
@@ -43,8 +60,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(124, 58, 237, 0.6), 0 0 60px rgba(192, 132, 252, 0.3); }
+  0%, 100% { box-shadow: 0 0 20px var(--theme-glow); }
+  50% { box-shadow: 0 0 40px var(--theme-glow), 0 0 60px var(--theme-glow); }
 }
 
 @keyframes lava-pulse {
@@ -70,17 +87,11 @@ body {
 
 /* Gradient backgrounds */
 .bg-sunset {
-  background: linear-gradient(180deg, #1e1035 0%, #4c1d95 30%, #7c3aed 50%, #c084fc 70%, #f59e0b 90%, #fb923c 100%);
+  background: var(--theme-gradient);
 }
 
 .bg-ocean-night {
-  background: linear-gradient(180deg, #0c0618 0%, #1e1035 40%, #0e1a3a 70%, #06b6d4 100%);
-}
-
-.bg-card {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(30, 16, 53, 0.8) 100%);
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, var(--background) 0%, #1e1035 40%, #0e1a3a 70%, #06b6d4 100%);
 }
 
 /* Star field for hero */
@@ -95,4 +106,49 @@ body {
     radial-gradient(2px 2px at 250px 20px, rgba(255, 255, 255, 0.7), transparent),
     radial-gradient(1px 1px at 300px 50px, rgba(6, 182, 212, 0.6), transparent);
   background-size: 320px 100px;
+}
+
+/* === WEATHER EFFECTS === */
+
+/* Rain drops */
+@keyframes rain-fall {
+  0% { transform: translateY(-10vh); opacity: 0.7; }
+  100% { transform: translateY(110vh); opacity: 0; }
+}
+
+.rain-drop {
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, transparent, rgba(147, 197, 253, 0.6));
+  border-radius: 0 0 2px 2px;
+  animation: rain-fall 1s linear infinite;
+}
+
+/* Lightning flash */
+@keyframes lightning {
+  0%, 95%, 100% { opacity: 0; }
+  96% { opacity: 0.8; }
+  97% { opacity: 0; }
+  98% { opacity: 0.5; }
+}
+
+.animate-lightning {
+  background: white;
+  animation: lightning 4s linear infinite;
+}
+
+/* Aurora wave */
+@keyframes aurora-wave {
+  0% { transform: translateX(-50%) skewX(-5deg); opacity: 0.3; }
+  50% { transform: translateX(0%) skewX(5deg); opacity: 0.6; }
+  100% { transform: translateX(-50%) skewX(-5deg); opacity: 0.3; }
+}
+
+.animate-aurora {
+  animation: aurora-wave 6s ease-in-out infinite;
+}
+
+/* Breezy body sway */
+body.animate-float > main {
+  animation: float 4s ease-in-out infinite;
 }
